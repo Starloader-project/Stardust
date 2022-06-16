@@ -1,0 +1,15 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.geolykt</groupId>
+    <artifactId>stardust-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Stardust</name>
+    <description>Yet another 2nd generation galimulator mod launcher</description>
+    <packaging>pom</packaging>
+    <modules>
+        <module>stardust-j8</module>
+        <module>stardust-core</module>
+    </modules>
+</project>

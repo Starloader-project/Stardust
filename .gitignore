@@ -1,0 +1,6 @@
+.*
+*.jar
+*/target/
+stardust-j8/jre17
+dependency-reduced-pom.xml
+
