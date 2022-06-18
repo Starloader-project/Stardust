@@ -7,6 +7,8 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>Stardust</name>
     <description>Yet another 2nd generation galimulator mod launcher</description>
+    <inceptionYear>2022</inceptionYear>
+
     <packaging>pom</packaging>
     <modules>
         <module>stardust-j8</module>

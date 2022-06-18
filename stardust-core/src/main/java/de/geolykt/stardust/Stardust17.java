@@ -15,8 +15,6 @@ import java.util.zip.ZipInputStream;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import de.geolykt.stardust.particle.ParticleLoader;
-
 /**
  * Core class for launching Stardust, written using Java 17.
  *
@@ -94,7 +92,6 @@ public class Stardust17 {
      */
     public static void main(String[] args) throws Exception {
         System.setProperty(STARDUST_DELEGATE_CLASS_KEY, System.getProperty(STARDUST_DELEGATE_CLASS_KEY, "com.example.Main"));
-        System.out.println("Path: " + System.getProperty("java.class.path"));
 
         ParticleLoader loader = new ParticleLoader(getNodes());
         loader.discoverParticles(Path.of("mods"));

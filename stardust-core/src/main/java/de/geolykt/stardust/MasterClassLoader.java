@@ -1,4 +1,4 @@
-package de.geolykt.stardust.cl;
+package de.geolykt.stardust;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import de.geolykt.stardust.particle.ParticleLoader;
+import de.geolykt.starloader.deobf.ClassWrapperPool;
 
 public class MasterClassLoader extends ClassLoader {
 
@@ -21,6 +21,7 @@ public class MasterClassLoader extends ClassLoader {
 
     private final ParticleLoader loader;
     private final Map<String, ClassNode> nodes = new ConcurrentHashMap<>();
+    private final ClassWrapperPool wrapperPool = new ClassWrapperPool(nodes, this);
 
     public MasterClassLoader(ParticleLoader loader, Collection<ClassNode> nodes) {
         super("StardustCore", null);
@@ -33,25 +34,24 @@ public class MasterClassLoader extends ClassLoader {
     }
 
     @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
+    public Class<?> findClass(String name) throws ClassNotFoundException {
         ClassNode node = nodes.get(name.replace('.', '/'));
-        if (node == null) {
+        if (node != null) {
+            byte[] bytes = transform(node);
+            return defineClass(name, bytes, 0, bytes.length);
+        }
+
+        ClassNotFoundException throwing = new ClassNotFoundException("Unable to find class: " + name);
+
+        for (ParticleClassLoader child : children) {
             try {
-                return super.findClass(name);
-            } catch (ClassNotFoundException cnfe) {
-                ClassNotFoundException throwing = new ClassNotFoundException("Unable to find class: " + name, cnfe);
-                for (ParticleClassLoader child : children) {
-                    try {
-                        return child.findClass0(name);
-                    } catch (ClassNotFoundException e) {
-                        throwing.addSuppressed(e);
-                    }
-                }
-                throw throwing;
+                Class<?> cl = child.findClass0(name);
+                return cl;
+            } catch (ClassNotFoundException e) {
+                throwing.addSuppressed(e);
             }
         }
-        byte[] bytes = transform(node);
-        return defineClass(name, bytes, 0, bytes.length);
+        throw throwing;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class MasterClassLoader extends ClassLoader {
         return super.findLibrary(libname);
     }
 
-    public Collection<ClassNode> getNodes() {
+    Collection<ClassNode> getNodes() {
         return nodes.values();
     }
 
@@ -134,7 +134,12 @@ public class MasterClassLoader extends ClassLoader {
 
     private byte[] transform(ClassNode node) {
         loader.getParticles().forEach((part) -> part.onClassloadTransform(node));
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES) {
+            @Override
+            protected String getCommonSuperClass(String type1, String type2) {
+                return wrapperPool.getCommonSuperClass(wrapperPool.get(type1), wrapperPool.get(type2)).getName();
+            }
+        };
         node.accept(writer);
         return writer.toByteArray();
     }

@@ -1,4 +1,4 @@
-package de.geolykt.stardust.particle;
+package de.geolykt.stardust;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,9 +16,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.objectweb.asm.tree.ClassNode;
-
-import de.geolykt.stardust.cl.MasterClassLoader;
-import de.geolykt.stardust.cl.ParticleClassLoader;
 
 public class ParticleLoader {
 
@@ -108,7 +105,7 @@ public class ParticleLoader {
     }
 
     private boolean isJar(Path jar) {
-        return !jar.getFileName().endsWith(".jar") && !jar.getFileName().startsWith(".");
+        return jar.getFileName().toString().endsWith(".jar") && !jar.getFileName().toString().startsWith(".");
     }
 
     private void loadIntoMemory(ParticleDescriptor desc) {
@@ -150,12 +147,13 @@ public class ParticleLoader {
             loadIntoMemory(desc);
         }
 
+        Map<ClassNode, String> originNames = new HashMap<>();
+        getClassloader().getNodes().forEach(node -> originNames.put(node, node.name));
         for (ParticleMod mod : particles) {
-            for (ClassNode node : getClassloader().getNodes()) {
-                mod.onReadTransform(node);
-            }
+            mod.onReadTransform(Collections.unmodifiableCollection(getClassloader().getNodes()));
+            originNames.forEach((node, name) -> node.name = name);
         }
-
         particles.forEach(ParticleMod::lateStartup);
+        originNames.forEach((node, name) -> node.name = name);
     }
 }

@@ -1,4 +1,4 @@
-package de.geolykt.stardust.particle;
+package de.geolykt.stardust;
 
 import java.nio.file.Path;
 
